@@ -1,0 +1,14 @@
+---
+    import { SITE } from '$/config'
+    import ModeLabel from './ModeLabel.svelte'
+---
+<footer class="footer">
+    <nav class="nav">
+        <div>2025 |  <a href={ SITE.githubUrl } title={`${ SITE.name }'s Github`}>{ SITE.name }</a>
+    </nav>
+</footer>
+<style>
+    .footer {
+        @apply py-6 border-t
+    }
+</style>

