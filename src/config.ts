@@ -1,27 +1,28 @@
 import type { NavItems } from "./types";
 
-export const NAV_ITEMS: NavItems = {
-	home: {
-		path: "/",
-		title: "home",
-	},
-	blog: {
-		path: "./blog",
-		title: "blog",
-	},
-	tags: {
-		path: "./tags",
-		title: "tags",
-	},
-	/*media: {
-		path: "./media",
-		title: "media",
-	},*/
-	about: {
-		path: "./about",
-		title: "about",
-	},
-};
+export const NAV_ITEMS = (base: string): NavItems => ({
+  home: {
+    path: `${base}/`,
+    title: "home",
+  },
+  blog: {
+    path: `${base}/posts`,
+    title: "Posts",
+  },
+  tags: {
+    path: `${base}/tags`,
+    title: "tags",
+  },
+  about: {
+    path: `${base}/about`,
+    title: "about",
+  },
+  /* Se vuoi aggiungere altre voci, basta seguire lo stesso schema
+  media: {
+    path: `${base}/media`,
+    title: "media",
+  }, */
+});
 
 export const SITE = {
 	// Your site's detail?
