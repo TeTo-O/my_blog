@@ -30,7 +30,7 @@ export const SITE = {
 	url: "",
 	githubUrl: "https://github.com/TeTo-O",
 	listDrafts: true,
-	image: "/assets/TETOlogo.svg",
+	image: "./assets/TETOlogo.svg",
 	// YT video channel Id (used in media.astro)
 	ytChannelId: "",
 	// Optional, user/author settings (example)
@@ -39,7 +39,7 @@ export const SITE = {
 	// Author: Twitter handler
 	authorGithub: "https://github.com/TeTo-O", // Example: FredKSchott
 	// Author: Image external source
-	authorImage: "/assets/TETOlogo.svg", // Example: https://pbs.twimg.com/profile_images/1272979356529221632/sxvncugt_400x400.jpg, https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png
+	authorImage: "./assets/TETOlogo.svg", // Example: https://pbs.twimg.com/profile_images/1272979356529221632/sxvncugt_400x400.jpg, https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png
 	// Author: Bio
 	authorBio:
 		"Web Security Student - CTF Player",
