@@ -15,8 +15,8 @@ import remarkCodeTitles from 'remark-code-titles'
 // https://astro.build/config
 export default defineConfig( /** @type {import('astro').AstroUserConfig} */{
   output: 'static',
-  site: 'https://teto-o.github.io/my_blog', // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
-  base: 'my_blog',
+  site: 'https://teto-o.github.io/', // Your public domain, e.g.: https://my-site.dev/. Used to generate sitemaps and canonical URLs.
+  base: '/my_blog/',
   server: {
     // port: 4321, // The port to run the dev server on.
   },
