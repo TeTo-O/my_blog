@@ -5,13 +5,10 @@ import tailwind from '@astrojs/tailwind';
 import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
 import { defineConfig } from "astro/config";
-import vercel from "@astrojs/vercel/serverless";
 import markdoc from "@astrojs/markdoc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import remarkCodeTitles from 'remark-code-titles'
-import decapCmsOauth from "astro-decap-cms-oauth";
-
 // Full Astro Configuration API Documentation:
 // https://docs.astro.build/reference/configuration-reference
 
@@ -38,8 +35,7 @@ export default defineConfig( /** @type {import('astro').AstroUserConfig} */{
     tailwind({
       applyBaseStyles: false,
     }), 
-    sitemap(),
-    decapCmsOauth()
+    sitemap()
   ],
   vite: {
     plugins: [],
