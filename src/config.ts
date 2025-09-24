@@ -17,8 +17,7 @@ export const NAV_ITEMS = (base: string): NavItems => ({
     path: `${base}/about`,
     title: "about",
   },
-  /* Se vuoi aggiungere altre voci, basta seguire lo stesso schema
-  media: {
+  /*media: {
     path: `${base}/media`,
     title: "media",
   }, */
