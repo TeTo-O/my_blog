@@ -27,6 +27,7 @@ export const SITE = {
 	// Your site's detail?
 	name: "TeTo",
 	title: "TeTo's blog",
+  description: "TeTo's blog",
 	url: "https://teto-o.github.io",
 	githubUrl: "https://github.com/TeTo-O",
 	listDrafts: true,
