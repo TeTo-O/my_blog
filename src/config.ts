@@ -6,7 +6,7 @@ export const NAV_ITEMS = (base: string): NavItems => ({
     title: "home",
   },
   blog: {
-    path: `/posts`,
+    path: `/blog`,
     title: "Posts",
   },
   tags: {

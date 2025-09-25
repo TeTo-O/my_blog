@@ -1,9 +1,6 @@
 ---
 import { toTitleCase } from '$/utils'
-// cambia import per NAV_ITEMS come funzione
-import { NAV_ITEMS as getNavItems } from '$/config'
-
-const NAV_ITEMS = getNavItems(Astro.base);
+import { NAV_ITEMS } from '$/config'
 ---
 <nav class="nav py-3">
     <ul class="nav-list dark:text-theme-dark-secondary" transition:animate="fade">
