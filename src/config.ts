@@ -2,23 +2,23 @@ import type { NavItems } from "./types";
 
 export const NAV_ITEMS = (base: string): NavItems => ({
   home: {
-    path: `${base}/`,
+    path: `/`,
     title: "home",
   },
   blog: {
-    path: `${base}/posts`,
+    path: `/posts`,
     title: "Posts",
   },
   tags: {
-    path: `${base}/tags`,
+    path: `/tags`,
     title: "tags",
   },
   about: {
-    path: `${base}/about`,
+    path: `/about`,
     title: "about",
   },
   /*media: {
-    path: `${base}/media`,
+    path: `/media`,
     title: "media",
   }, */
 });
