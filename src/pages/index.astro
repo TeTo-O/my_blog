@@ -47,14 +47,15 @@ const posts = await getCollection('blog')
     /* contenitore del logo con effetto vetro */
     .author-card {
         @apply h-64 w-64 md:h-64 rounded-full shadow-xl 
-           bg-white/10 dark:bg-black/40 
+           bg-white dark:bg-white
            backdrop-blur-md
-           border border-white/30 dark:border-black/30; /* bordo soft */
+           border border-solid border-theme-primary dark:border-theme-primary; /* bordo soft */
     }
 
     .author-card img {
-        @apply rounded-full h-64 w-64 md:h-64 border border-white/40 dark:border-black/90; 
+        @apply rounded-full h-64 w-64 md:h-64 border-4 border-solid border-theme-primary dark:border-theme-primary;
     }
+    
 
 
 
