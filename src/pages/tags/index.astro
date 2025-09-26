@@ -22,9 +22,10 @@ const tags = [...new Set([].concat.apply([], allPosts.map(post => post.data.tags
 
 <style>
     .tag-list {
-        @apply list-none flex gap-2 flex-wrap
+        @apply flex flex-wrap list-none gap-2;
     }
+
     .tag {
-        @apply px-4 py-2 rounded-full uppercase font-bold text-white bg-gradient-to-tr from-theme-primary to-theme-dark-secondary dark:from-theme-dark-secondary dark:to-theme-primary
-    }
+        @apply px-1 py-1 rounded-md uppercase font-bold text-white bg-gradient-to-tr from-theme-primary to-theme-dark-secondary dark:from-theme-dark-secondary dark:to-theme-primary truncate max-w-full;
+    }   
 </style>
